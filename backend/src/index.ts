@@ -17,10 +17,24 @@ const allowedOrigins = (process.env.ALLOWED_ORIGINS || 'http://127.0.0.1:5500,ht
   .map(origin => origin.trim())
   .filter(Boolean);
 
-app.use(cors({
-  origin: allowedOrigins,
-  credentials: true
-}));
+const corsOptions = {
+  origin: (origin: string | undefined, callback: any) => {
+    if (!origin) {
+      callback(null, true);
+      return;
+    }
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+      return;
+    }
+    console.warn(`CORS denied for origin: ${origin}`);
+    callback(new Error(`Origin ${origin} not allowed by CORS`));
+  },
+  credentials: true,
+};
+
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
 app.use(express.json())
 
 app.use('/api', apiRouter);
@@ -37,7 +51,7 @@ app.get('/', async (req, res) => {
   })
 })
 
-const port = process.env.port || 3000
+const port = process.env.PORT || 3000
 
 function printRoutes(app: express.Application) {
   const router = app._router;
