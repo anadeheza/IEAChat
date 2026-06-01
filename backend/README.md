@@ -1,6 +1,6 @@
 # REST API para exponer datos de bases de datos
 
-Este proyecto implementa **REST API con TypeScript** usando [Express](https://expressjs.com/) y [Prisma Client](https://www.prisma.io/docs/concepts/components/prisma-client). Este ejemplo usa Microsoft SQL Server como motor de base de datos, aunque es posible utilizarlo con otros tipos de base de datos.
+Este proyecto implementa **REST API con TypeScript** usando [Express](https://expressjs.com/) y [Prisma Client](https://www.prisma.io/docs/concepts/components/prisma-client). Este ejemplo usa PostgreSQL como motor de base de datos, aunque es posible utilizarlo con otros tipos de base de datos.
 
 ## ¿Cómo arrancar?
 
@@ -14,20 +14,28 @@ npm install
 
 ### 2. Crear y llenar la DB
 
-Es necesario correr el siguiente comando para poder migrar la base de datos según la estructura que se definió en [`prisma/schema.prisma`](./prisma/schema.prisma):
+Configura `DATABASE_URL` en tu `.env` o en las variables de entorno del servicio.
+
+Ejemplo de URL para PostgreSQL:
+
+```env
+DATABASE_URL="postgresql://user:password@localhost:5432/flock_archive"
+```
+
+Luego ejecuta la migración y el seed:
 
 ```
 npx prisma migrate dev --name init
 ```
 
-Cuando `npx prisma migrate dev` se ejecuta sobre una nueva base de datos, el llenado también es ejecutado. El archivo para llenar la base de datos esta en [`prisma/seed.ts`](./prisma/seed.ts) , cuando este sea ejecutado, su base de datos será llenada con valores de prueba o valores necesarios para el funcionamiento de su proyecto.
+Esto aplicará el esquema de [`prisma/schema.prisma`](./prisma/schema.prisma) y llenará la base de datos de prueba usando [`prisma/seed.ts`](./prisma/seed.ts).
 
 -------------------
 
-También es posible migrar la base de datos con la última migración que esta descripta en el archivo de prisma.
+También es posible empujar el esquema directamente sin crear nuevas migraciones:
 
 ```
-npx npx prisma db push
+npx prisma db push
 ```
 
 ### 3. Iniciar el servidor REST API

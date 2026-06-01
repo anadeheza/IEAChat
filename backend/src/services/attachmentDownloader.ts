@@ -3,7 +3,6 @@ import axios from 'axios';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { Readable } from 'stream';
 import prisma from '../prismaClient';
-import type { Attachment } from '@prisma/client';
 import * as fs from 'fs-extra';
 import path from 'path';
 import { pipeline } from 'stream/promises';
@@ -54,7 +53,7 @@ export function cancelDownloads() {
     }
 }
 
-export async function downloadAttachment(attachment: Attachment, signal?: AbortSignal): Promise<{ success: boolean; message: string }> {
+export async function downloadAttachment(attachment: any, signal?: AbortSignal): Promise<{ success: boolean; message: string }> {
     const fileName = attachment.fileName || `attachment-${attachment.id}`;
     const key = `attachments/${fileName}`;
 

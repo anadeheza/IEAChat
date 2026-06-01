@@ -177,7 +177,7 @@ export const listUsers: RequestHandler = async (req, res) => {
 
         // Si el usuario no inició sesión o no viene el header, devolvemos la lista con conteo en 0
         if (!currentUserEmail) {
-            const fallbackUsers = users.map(u => ({ ...u, _count: { messages: 0 } }));
+            const fallbackUsers = users.map((u: any) => ({ ...u, _count: { messages: 0 } }));
             return res.json(sanitize(fallbackUsers));
         }
 
@@ -186,7 +186,7 @@ export const listUsers: RequestHandler = async (req, res) => {
         const currentName = currentUser ? currentUser.name : '';
 
         // Recorremos la lista de usuarios de forma asíncrona para inyectarles el conteo de mensajes
-        const usersWithCount = await Promise.all(users.map(async (user) => {
+        const usersWithCount = await Promise.all(users.map(async (user: any) => {
             
             // 1. Contamos mensajes donde este usuario me escribió a mí (su nombre figura como sender y mi mail está en el sourceFile)
             const receivedCount = await prisma.message.count({
@@ -270,7 +270,7 @@ export const listAttachments: RequestHandler = async (req, res) => {
             orderBy: { id: 'asc' },
             take,
         });
-        const resolved = attachments.map(att => ({
+        const resolved = attachments.map((att: any) => ({
             ...att,
             s3Key: resolveAttachmentUrl(att.s3Key, req),
         }));
@@ -326,11 +326,11 @@ export const downloadAllAttachments: RequestHandler = async (req, res) => {
 
         // Build the list of IDs to process depending on 'force'
         const rows = await prisma.attachment.findMany({ select: { id: true, isDownloaded: true } });
-        let ids = rows.map(r => r.id);
+        let ids = rows.map((r: any) => r.id);
         if (!force) {
             // Filter out already-downloaded ids
             const pendingRows = await prisma.attachment.findMany({ where: { isDownloaded: false }, select: { id: true } });
-            ids = pendingRows.map(r => r.id);
+            ids = pendingRows.map((r: any) => r.id);
         }
 
         const total = ids.length;
