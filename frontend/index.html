@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IEA Chat</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div id="login-overlay" class="login-overlay" style="display: none;">
+        <div class="login-card">
+            <div class="login-logo">▣</div>
+            <h3>Acceder</h3>
+
+            <form id="login-form">
+                <!-- Paso 1: ingresar email -->
+                <div id="login-step-email">
+                    <p>Introduce tu correo de Flock</p>
+                    <input type="email" id="login-email" placeholder="napellido@iea.com.ar" autocomplete="email">
+                    <button type="submit" class="page-btn" style="width: 100%; margin-top: 8px; padding: 10px;">Ingresar</button>
+                </div>
+
+                <!-- Paso 2: ingresar código OTP -->
+                <div id="login-step-code" style="display:none;">
+                    <p>Revisá tu correo. Enviamos un código a<br><strong id="login-pending-email"></strong></p>
+                    <input type="text" id="login-code" placeholder="Código de 6 dígitos" maxlength="6" autocomplete="one-time-code"
+                        style="letter-spacing: 6px; font-size: 1.4rem; text-align:center; width:100%; box-sizing:border-box;">
+                    <button type="submit" class="page-btn" style="width: 100%; margin-top: 8px; padding: 10px;">Verificar</button>
+                    <button type="button" id="login-back-btn" style="background:none;border:none;color:var(--text-muted,#888);cursor:pointer;margin-top:10px;font-size:.85rem;width:100%;">
+                        ← Cambiar email
+                    </button>
+                </div>
+            </form>
+
+            <div id="login-error" class="login-error-msg" style="display: none;"></div>
+        </div>
+    </div>
+
+    <button class="openBtn" onclick="openNav()">☰</button>
+
+    <div id="sidebar" class="sidebar">
+        <div class="sidebar-header">
+            <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">X</a>
+            <span class="sidebar-logo">▣</span>
+            <h2>IEA Chat</h2>
+        </div>
+
+        <div class="sidebar-search-wrapper">
+            <span class="sidebar-search-icon">⌕</span>
+            <input type="search" id="sidebar-search" placeholder="Buscar canal o usuario…" autocomplete="off">
+        </div>
+
+        <nav class="sidebar-nav">
+            <div class="section-label">
+                Canales
+                <span class="section-count" id="channels-count"></span>
+            </div>
+            <ul class="nav-list" id="channels-list">
+                <li class="nav-item skeleton-item"><span class="skeleton-line"></span></li>
+                <li class="nav-item skeleton-item"><span class="skeleton-line short"></span></li>
+            </ul>
+            <button class="show-more-btn" id="channels-show-more" style="display:none">
+                <span id="channels-show-more-label">Ver más</span>
+                <span class="show-more-arrow" id="channels-show-more-arrow">▾</span>
+            </button>
+
+            <div class="section-label" style="margin-top:6px">
+                Mensajes Directos
+                <span class="section-count" id="dms-count"></span>
+            </div>
+            <ul class="nav-list" id="dms-list">
+                <li class="nav-item skeleton-item"><span class="skeleton-line"></span></li>
+                <li class="nav-item skeleton-item"><span class="skeleton-line short"></span></li>
+            </ul>
+            <button class="show-more-btn" id="dms-show-more" style="display:none">
+                <span id="dms-show-more-label">Ver más</span>
+                <span class="show-more-arrow" id="dms-show-more-arrow">▾</span>
+            </button>
+        </nav>
+
+            <div class="stats-bar" id="stats-bar">
+            <div class="stat-chip" id="stat-messages">— msgs</div>
+            <div class="stat-chip" id="stat-attachments">— adj</div>
+            <div class="stat-chip" id="stat-total-size">— tamaño</div>
+            <a href="attachments.html" class="page-btn download-attachments-btn" id="download-attachments-btn">descargar archivos</a>
+        </div>
+
+        <div class="sidebar-user-profile" id="sidebar-user-profile">
+            <div class="user-avatar">👤</div>
+            <div class="user-info">
+                <span class="user-name" id="user-profile-name">Usuario</span>
+                <span class="user-email" id="user-profile-email">correo@iea.com.ar</span>
+            </div>
+            <button class="logout-btn" id="logout-btn" title="Cerrar Sesión">⎋</button>
+        </div>
+    </div>
+
+    <main id="main-content" class="main-content">
+
+        <header class="top-bar">
+            <div class="view-info">
+                <span class="view-icon" id="view-icon">#</span>
+                <h3 id="current-view-title">Cargando...</h3>
+                <span class="message-count" id="message-count"></span>
+            </div>
+            <div class="search-wrapper">
+                <span class="search-icon">⌕</span>
+                <input type="search" id="search-input" placeholder="Buscar mensajes…" autocomplete="off">
+                <div class="search-results-dropdown" id="search-results" style="display:none"></div>
+            </div>
+        </header>
+
+        <section class="messages-container" id="messages-container">
+            <div class="loading-state" id="loading-state">
+                <div class="loading-spinner"></div>
+                <span>Cargando mensajes…</span>
+            </div>
+        </section>
+
+        <div class="pagination-bar">
+            <span id="page-info"></span>
+        </div>
+
+        <footer class="chat-footer">
+            <div class="archive-notice">
+                <span class="archive-icon">🗄</span>
+                Archivo de solo lectura · <strong id="footer-channel">&nbsp;</strong>
+            </div>
+        </footer>
+    </main>
+
+    <div id="preview-modal" class="login-overlay">
+        <div class="login-card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid #ddd; padding-bottom: 8px;">
+                <h3 id="preview-title">Vista Previa</h3>
+                <button onclick="closePreviewModal()" class="close-preview">✕</button>
+            </div>
+            <div id="preview-body"></div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

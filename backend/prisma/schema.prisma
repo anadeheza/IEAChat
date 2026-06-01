@@ -1,0 +1,54 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:../storage/flock_archive.db"
+}
+
+model User {
+  id       String    @id // GUID de flock
+  email    String    @unique
+  name     String
+  messages Message[]
+}
+
+model Channel {
+  id          String    @id // ID de flock
+  name        String
+  description String?
+  messages    Message[]
+}
+
+model Message {
+  id         Int     @id @default(autoincrement())
+  timestamp  BigInt // data-order del HTML
+  dateText   String // La fecha legible del HTML
+  senderName String
+  text       String
+  isGroup    Boolean
+
+  // Relación con el archivo origen para auditoría
+  sourceFile String
+
+  // FKs opcionales (un mensaje es o de canal o de usuario)
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id])
+  channelId String?
+  channel   Channel? @relation(fields: [channelId], references: [id])
+
+  attachments Attachment[]
+}
+
+model Attachment {
+  id           Int     @id @default(autoincrement())
+  url          String // URL original de Flock
+  fileName     String
+  sizeBytes    BigInt? // Tamaño detectado via HEAD
+  contentType  String?
+  s3Key        String? // Ruta en DigitalOcean Spaces
+  isDownloaded Boolean @default(false)
+  messageId    Int
+  message      Message @relation(fields: [messageId], references: [id])
+}

@@ -1,0 +1,9 @@
+node_modules/
+dist/
+*.env
+prisma/**.db
+
+# Evitar subir datos exportados y archivos descargados
+data/
+storage/
+storage/

@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Adjuntos · IEA Chat</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header style="padding:16px; border-bottom:1px solid rgba(255,255,255,.04); display:flex; align-items:center; gap:12px;">
+    <a href="index.html" class="page-btn">← Volver</a>
+    <h2 style="margin:0;">Adjuntos</h2>
+  </header>
+
+  <main style="padding:18px;">
+    <div style="display:flex; gap:12px; align-items:center; margin-bottom:12px;">
+      <div class="stat-chip" id="attachments-count">—</div>
+      <div class="stat-chip" id="attachments-total-size">—</div>
+      <button class="download-attachments-btn" id="select-all-btn">Seleccionar todo</button>
+      <button class="download-attachments-btn" id="download-selected-btn">Descargar seleccionados</button>
+      <button class="download-attachments-btn" id="download-all-btn">Descargar todos</button>
+      <button class="download-attachments-btn" id="download-cancel-btn" style="display:none; background:#b33;">Cancelar</button>
+      <button class="download-attachments-btn" id="toggle-db-view-btn">Ver todos los archivos de la DB</button>
+      <button class="download-attachments-btn" id="download-all-db-btn">Descargar todos (DB)</button>
+    </div>
+    <div id="download-progress" style="margin-bottom:12px; display:none; align-items:center; gap:8px;">
+      <div style="flex:1; background:rgba(255,255,255,0.03); height:10px; border-radius:6px; overflow:hidden;">
+        <div id="download-progress-bar" style="height:100%; width:0%; background:var(--accent); transition:width .3s ease;"></div>
+      </div>
+      <div id="download-progress-text" style="min-width:140px; font-size:.85rem; color:var(--text-muted);">0 / 0</div>
+    </div>
+
+    <div id="attachments-list" style="max-height:70vh; overflow:auto; border:1px solid rgba(255,255,255,.03); padding:8px; border-radius:6px;">
+      Cargando adjuntos...
+    </div>
+  </main>
+
+  <script src="attachments.js"></script>
+</body>
+</html>
