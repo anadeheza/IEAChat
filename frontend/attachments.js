@@ -91,10 +91,6 @@ function renderList() {
     }).join('');
 
     attachmentsListEl.innerHTML = rows;
-    // console.log('List rendered, restoring scroll to', savedScroll);
-    
-//    attachmentsListEl.scrollTop = savedScroll;
-    // console.log('List rendered, scroll restored to', savedScroll);
 }     
 
 function getSelectedIds() {

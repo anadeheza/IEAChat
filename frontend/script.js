@@ -1,4 +1,4 @@
-const API_BASE = 'http://localhost:3000/api';
+const API_BASE = window.API_BASE || 'http://localhost:3000/api';
 
 // ─── Estado global ───────────────────────────────────────────
 const state = {

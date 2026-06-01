@@ -12,12 +12,13 @@ dotenv.config();
 
 const app = express()
 
+const allowedOrigins = (process.env.ALLOWED_ORIGINS || 'http://127.0.0.1:5500,http://localhost:5500')
+  .split(',')
+  .map(origin => origin.trim())
+  .filter(Boolean);
+
 app.use(cors({
-  origin: [
-    'http://127.0.0.1:5500',
-    'http://localhost:5500',
-    'https://iea-chat.vercel.app/'
-  ],
+  origin: allowedOrigins,
   credentials: true
 }));
 app.use(express.json())

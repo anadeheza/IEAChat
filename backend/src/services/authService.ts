@@ -6,6 +6,21 @@ const transporter = nodemailer.createTransport({
     port: 1025,
     secure: false,
     ignoreTLS: true,
+
+    /*
+    host: process.env.MAIL_HOST || '127.0.0.1',
+    port: Number(process.env.MAIL_PORT || 1025),
+    secure: process.env.MAIL_SECURE === 'true',
+    auth: process.env.MAIL_USER && process.env.MAIL_PASS ? {
+        user: process.env.MAIL_USER,
+        pass: process.env.MAIL_PASS,
+    } : undefined,
+    ignoreTLS: process.env.MAIL_IGNORE_TLS === 'true' || false,
+    tls: {
+        rejectUnauthorized: process.env.MAIL_TLS_REJECT_UNAUTHORIZED !== 'false',
+    },
+     */
+
     connectionTimeout: 10000,
     greetingTimeout: 10000,
     socketTimeout: 10000,
@@ -44,6 +59,7 @@ export async function sendVerificationCode(email: string): Promise<void> {
  
     await transporter.sendMail({
         from: '"Flock App" <no-reply@flock.local>',
+        //from: process.env.MAIL_FROM || '"Flock App" <no-reply@flock.local>',
         to: email,
         subject: 'Tu código de verificación',
         text: `Tu código de verificación es: ${code}\n\nExpira en ${OTP_TTL_MINUTES} minutos.`,
