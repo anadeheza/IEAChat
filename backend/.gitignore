@@ -6,4 +6,3 @@ prisma/**.db
 # Evitar subir datos exportados y archivos descargados
 data/
 storage/
-storage/
