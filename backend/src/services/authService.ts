@@ -1,20 +1,61 @@
 import * as nodemailer from 'nodemailer';
 import prisma from '../prismaClient';
 
-const transporter = nodemailer.createTransport({
-    host: process.env.MAIL_HOST || '127.0.0.1',
-    port: Number(process.env.MAIL_PORT || 1025),
-    secure: process.env.MAIL_SECURE === 'true',
-    auth: process.env.MAIL_USER && process.env.MAIL_PASS ? {
-        user: process.env.MAIL_USER,
-        pass: process.env.MAIL_PASS,
-    } : undefined,
-    ignoreTLS: process.env.MAIL_IGNORE_TLS === 'true' || false,
-    tls: process.env.MAIL_TLS_REJECT_UNAUTHORIZED === 'false' ? { rejectUnauthorized: false } : undefined,
-    connectionTimeout: 10000,
-    greetingTimeout: 10000,
-    socketTimeout: 10000,
-});
+let cachedTransporter: nodemailer.Transporter | null = null;
+
+async function getTransporter(): Promise<nodemailer.Transporter> {
+    if (cachedTransporter) return cachedTransporter;
+
+    const host = process.env.MAIL_HOST || '127.0.0.1';
+    const port = Number(process.env.MAIL_PORT || 1025);
+    const user = process.env.MAIL_USER || '';
+    const pass = process.env.MAIL_PASS || '';
+
+    // If defaults or placeholders are present, fall back to Ethereal (test) account.
+    const isPlaceholderHost = host.includes('example') || host === 'smtp.example.com';
+    const isPlaceholderUser = user.startsWith('your') || user === '';
+
+    if (isPlaceholderHost || isPlaceholderUser) {
+        try {
+            const testAccount = await nodemailer.createTestAccount();
+            cachedTransporter = nodemailer.createTransport({
+                host: 'smtp.ethereal.email',
+                port: 587,
+                secure: false,
+                auth: {
+                    user: testAccount.user,
+                    pass: testAccount.pass,
+                },
+            });
+            console.warn('⚠️  SMTP appears unconfigured — using Ethereal test account for email delivery.');
+            return cachedTransporter;
+        } catch (err) {
+            console.error('Failed to create Ethereal test account:', err);
+            // continue to try creating a normal transporter below
+        }
+    }
+
+    cachedTransporter = nodemailer.createTransport({
+        host,
+        port,
+        secure: process.env.MAIL_SECURE === 'true',
+        auth: user && pass ? { user, pass } : undefined,
+        ignoreTLS: process.env.MAIL_IGNORE_TLS === 'true' || false,
+        tls: process.env.MAIL_TLS_REJECT_UNAUTHORIZED === 'false' ? { rejectUnauthorized: false } : undefined,
+        connectionTimeout: 10000,
+        greetingTimeout: 10000,
+        socketTimeout: 10000,
+    });
+
+    try {
+        await cachedTransporter.verify();
+        console.log(`✅ SMTP transporter verified (${host}:${port})`);
+    } catch (err: any) {
+        console.warn('⚠️ SMTP transporter verification failed:', err && err.message ? err.message : err);
+    }
+
+    return cachedTransporter;
+}
 
 function generateCode(): string {
     return Math.floor(100000 + Math.random() * 900000).toString();
@@ -53,7 +94,8 @@ export async function sendVerificationCode(email: string): Promise<void> {
     }
  
     try {
-        await transporter.sendMail({
+        const transporter = await getTransporter();
+        const info = await transporter.sendMail({
             from: process.env.MAIL_FROM || '"Flock App" <no-reply@flock.local>',
             to: mailRecipient,
             subject: 'Tu código de verificación',
@@ -69,10 +111,14 @@ export async function sendVerificationCode(email: string): Promise<void> {
                 </div>
             `,
         });
-    } catch (mailError) {
-        console.error('Error enviando OTP por email:', mailError);
-        // No lanzamos el error para no filtrar si el email existe
-        // -> el flujo de login sigue, pero el envío puede fallar si SMTP no está configurado.
+
+        // If using Ethereal, print preview URL to console to help local debugging
+        const preview = nodemailer.getTestMessageUrl(info);
+        if (preview) console.log(`📨 Email enviado (Ethereal preview): ${preview}`);
+        else console.log(`📨 Email enviado: ${info.messageId}`);
+    } catch (mailError: any) {
+        console.error('Error enviando OTP por email:', mailError && mailError.message ? mailError.message : mailError);
+        // Keep silent to the client to avoid leaking information about account existence
     }
 }
 
