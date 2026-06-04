@@ -7,6 +7,7 @@ import * as fs from 'fs-extra';
 import path from 'path';
 import { pipeline } from 'stream/promises';
 import { HeadObjectCommand } from '@aws-sdk/client-s3';
+import os from 'os';
 
 dotenv.config();
 
@@ -25,6 +26,29 @@ const SERVER_PORT = process.env.port || process.env.PORT || 3000;
 const USE_LOCAL_FALLBACK = process.env.FORCE_LOCAL_STORAGE === '1' || false;
 
 let currentAbortController: AbortController | null = null;
+
+async function getStorageDirectory(): Promise<string> {
+    // Intentar usar storage/attachments
+    const defaultDir = path.resolve(__dirname, '../../storage/attachments');
+    try {
+        await fs.ensureDir(defaultDir);
+        return defaultDir;
+    } catch (error) {
+        console.warn(`No se pudo crear/acceder a ${defaultDir}, usando carpeta Downloads`, error);
+    }
+
+    // Fallback: usar carpeta Downloads del sistema
+    const downloadsDir = path.join(os.homedir(), 'Downloads');
+    try {
+        // La carpeta Downloads ya existe normalmente, pero validamos que sea accesible
+        await fs.access(downloadsDir);
+        console.log(`Usando carpeta Downloads: ${downloadsDir}`);
+        return downloadsDir;
+    } catch (error) {
+        console.error(`Error accediendo a carpeta Downloads:`, error);
+        throw new Error('No se pudo acceder al directorio de almacenamiento en attachments ni en Downloads');
+    }
+}
 
 function getUniqueFileName(filePath: string): string {
     if (!fs.existsSync(filePath)) {
@@ -105,8 +129,7 @@ export async function downloadAttachment(attachment: any, signal?: AbortSignal):
             }
 
             if (shouldUseLocal) {
-                const storageDir = path.resolve(__dirname, '../../storage/attachments');
-                await fs.ensureDir(storageDir);
+                const storageDir = await getStorageDirectory();
                 let outPath = path.join(storageDir, fileName);
                 outPath = getUniqueFileName(outPath);
                 const finalFileName = path.basename(outPath);
@@ -114,11 +137,15 @@ export async function downloadAttachment(attachment: any, signal?: AbortSignal):
                 const writeStream = fs.createWriteStream(outPath);
                 await pipeline(response.data as Readable, writeStream);
 
-                // const localUrl = `http://localhost:${SERVER_PORT}/storage/attachments/${encodeURIComponent(finalFileName)}`;
-                // await prisma.attachment.update({ where: { id: attachment.id }, data: { isDownloaded: true, s3Key: localUrl } });
-
-                //en lugar de guardar la url local guardamos la ruta relativa 
-                const relativeKey = `/storage/attachments/${encodeURIComponent(finalFileName)}`;
+                // Determinar si está en storage/attachments o en Downloads
+                let relativeKey: string;
+                if (storageDir.includes('storage/attachments') || storageDir.includes('storage\\attachments')) {
+                    relativeKey = `/storage/attachments/${encodeURIComponent(finalFileName)}`;
+                } else {
+                    // Si está en Downloads, guardar la ruta relativa a Downloads
+                    relativeKey = `/downloads/${encodeURIComponent(finalFileName)}`;
+                }
+                
                 await prisma.attachment.update({ where: { id: attachment.id }, data: { isDownloaded: true, s3Key: relativeKey } });
 
                 return { success: true, message: 'Guardado localmente' };
