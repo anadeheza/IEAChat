@@ -23,9 +23,13 @@ export const login: RequestHandler = async (req, res) => {
 };
 
 export const verify: RequestHandler = async (req, res) => {
+   
     try {
         const { email, code } = req.body;
 
+        if (!email || !code || typeof email !== 'string' || typeof code !== 'string') {
+            return res.status(400).json({ message: 'Email y código son requeridos.' });
+        }
  
         const isValid = verifyCode(email.trim().toLowerCase(), code.trim());
  
